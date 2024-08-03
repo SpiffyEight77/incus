@@ -330,6 +330,10 @@ func networksPost(d *Daemon, r *http.Request) response.Response {
 		return response.BadRequest(fmt.Errorf("No name provided"))
 	}
 
+	if req.Name == "none" {
+		return response.BadRequest(fmt.Errorf("Network name 'none' is not valid"))
+	}
+
 	// Check if project allows access to network.
 	if !project.NetworkAllowed(reqProject.Config, req.Name, true) {
 		return response.SmartError(api.StatusErrorf(http.StatusForbidden, "Network not allowed in project"))
@@ -763,7 +767,7 @@ func doNetworksCreate(ctx context.Context, s *state.State, n network.Network, cl
 	// Don't validate network config during pre-cluster-join phase, as if network has ACLs they won't exist
 	// in the local database yet. Once cluster join is completed, network will be restarted to give chance for
 	// ACL firewall config to be applied.
-	if clientType != clusterRequest.ClientTypeJoiner {
+	if clientType != clusterRequest.ClientTypeJoiner && n.Config()["network"] != "none" {
 		// Validate so that when run on a cluster node the full config (including node specific config)
 		// is checked.
 		err := n.Validate(n.Config())

@@ -406,15 +406,21 @@ func (d *nicOVN) Start() (*deviceConfig.RunConfig, error) {
 	// Load uplink network config.
 	uplinkNetworkName := d.network.Config()["network"]
 
-	var uplink *api.Network
+	uplink := &api.Network{
+		NetworkPut: api.NetworkPut{
+			Config: d.network.Config(),
+		},
+	}
 
-	err = d.state.DB.Cluster.Transaction(context.TODO(), func(ctx context.Context, tx *db.ClusterTx) error {
-		_, uplink, _, err = tx.GetNetworkInAnyState(ctx, api.ProjectDefaultName, uplinkNetworkName)
+	if uplinkNetworkName != "none" {
+		err = d.state.DB.Cluster.Transaction(context.TODO(), func(ctx context.Context, tx *db.ClusterTx) error {
+			_, uplink, _, err = tx.GetNetworkInAnyState(ctx, api.ProjectDefaultName, uplinkNetworkName)
 
-		return err
-	})
-	if err != nil {
-		return nil, fmt.Errorf("Failed to load uplink network %q: %w", uplinkNetworkName, err)
+			return err
+		})
+		if err != nil {
+			return nil, fmt.Errorf("Failed to load uplink network %q: %w", uplinkNetworkName, err)
+		}
 	}
 
 	// Setup the host network interface (if not nested).
