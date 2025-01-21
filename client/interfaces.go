@@ -168,6 +168,8 @@ type InstanceServer interface {
 	CreateInstanceTemplateFile(instanceName string, templateName string, content io.ReadSeeker) (err error)
 	DeleteInstanceTemplateFile(name string, templateName string) (err error)
 
+	GetInstanceDebugMemory(name string, path string, format string) (err error)
+
 	// Event handling functions
 	GetEvents() (listener *EventListener, err error)
 	GetEventsAllProjects() (listener *EventListener, err error)
