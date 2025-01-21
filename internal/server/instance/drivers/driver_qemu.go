@@ -9505,3 +9505,24 @@ func (d *qemu) ReloadDevice(devName string) error {
 
 	return dev.Update(d.expandedDevices, true)
 }
+
+func (d *qemu) DumpGuestMemory(path string, format string) error {
+	if !d.IsRunning() {
+		return fmt.Errorf("Instance is not running")
+	}
+
+	// Check if the agent is running.
+	monitor, err := qmp.Connect(d.monitorPath(), qemuSerialChardevName, d.getMonitorEventHandler(), d.QMPLogFilePath())
+	if err != nil {
+		return err
+	}
+	defer monitor.Disconnect()
+
+	// Dump the guest memory.
+	err = monitor.DumpGuestMemory(path, format)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
